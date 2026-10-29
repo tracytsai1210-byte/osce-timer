@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OSCE 考站計時器</title>
+<meta name="description" content="OSCE 考官用考站倒數計時器：閱題、測驗、剩餘提示、超時警示與學員紀錄。所有資料僅存於本機瀏覽器，請只使用模擬資料。">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--#BODY-START-->
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">OSCE · 考官用 · V02</div>
+      <h1>OSCE 考站計時器</h1>
+    </div>
+    <div class="hdr-actions">
+      <button class="icon-btn" id="btnTheme" type="button" title="切換深淺色" aria-label="切換深淺色">◐</button>
+      <button class="icon-btn" id="btnFull" type="button" title="全螢幕" aria-label="全螢幕">⛶</button>
+    </div>
+  </header>
+
+  <section class="clock idle" id="clock" data-phase="exam" aria-live="polite">
+    <div class="topline">
+      <span class="phase" id="phaseLabel">測驗</span>
+      <span class="round">本站第 <b id="roundNo">1</b> 位</span>
+    </div>
+    <div class="who">
+      <div class="station"><span id="stName">第 3 站</span><small id="stTask">腹部身體檢查</small></div>
+      <span class="student" id="student">學員 A</span>
+    </div>
+
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 320 320" aria-hidden="true">
+        <circle class="track" cx="160" cy="160" r="150"></circle>
+        <circle class="prog" id="ringProg" cx="160" cy="160" r="150"></circle>
+      </svg>
+      <div class="ring-center">
+        <div class="time" id="time">08:00</div>
+        <div class="sub-time" id="subTime">就緒</div>
+      </div>
+    </div>
+
+    <div class="marks">
+      <span>閱題 <b id="markRead">01:00</b></span>
+      <span>測驗 <b id="markExam">08:00</b></span>
+      <span>提示 剩 <b id="markWarn">01:00</b></span>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="btnStart" type="button">開始</button>
+      <button id="btnNext" type="button">下一位</button>
+      <button id="btnSkip" type="button">跳過閱題</button>
+      <button id="btnReset" type="button" class="ghost">重設</button>
+    </div>
+    <div class="presets">
+      <button class="preset" type="button" data-min="5">5 分</button>
+      <button class="preset" type="button" data-min="6">6 分</button>
+      <button class="preset on" type="button" data-min="8">8 分</button>
+      <button class="preset" type="button" data-min="10">10 分</button>
+      <button class="preset" type="button" data-min="12">12 分</button>
+    </div>
+    <div class="note">快捷鍵：<span class="kbd">空白鍵</span> 開始／暫停　<span class="kbd">N</span> 下一位　<span class="kbd">R</span> 重設</div>
+  </section>
+
+  <details>
+    <summary>切換站別 <span class="count" id="stationCount">4 站</span></summary>
+    <div class="body">
+      <div class="chips" id="stationChips"></div>
+      <p class="sub">切換站別會重設倒數。站別名稱與任務可在「設定」修改。</p>
+    </div>
+  </details>
+
+  <details open>
+    <summary>學員紀錄 <span class="count" id="logCount">0 筆</span></summary>
+    <div class="body">
+      <div class="stats">
+        <div class="stat"><b id="statCount">0</b><span>已完成</span></div>
+        <div class="stat"><b id="statOver">0</b><span>超時人次</span></div>
+        <div class="stat"><b id="statAvg">—</b><span>平均用時</span></div>
+      </div>
+      <div class="empty" id="logEmpty">尚無紀錄。按「下一位」會自動記錄本位學員的用時與是否超時。</div>
+      <div class="tablewrap"><table id="logTable"></table></div>
+      <div class="row-actions">
+        <button id="btnCopyLog" type="button">複製為 CSV</button>
+        <button id="btnClearLog" type="button" class="ghost">清除紀錄</button>
+      </div>
+      <p class="sub">紀錄只存在這台裝置的瀏覽器；請勿填入真實姓名、病歷號或病歷內容。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>設定</summary>
+    <div class="body">
+      <div class="fields">
+        <label>閱題時間（秒，0＝不閱題）<input type="number" id="cfgRead" min="0" max="900" value="60"></label>
+        <label>測驗時間（分鐘）<input type="number" id="cfgMin" min="1" max="60" value="8"></label>
+        <label>剩餘幾秒提示<input type="number" id="cfgWarn" min="0" max="600" value="60"></label>
+        <label>目前學員<input type="text" id="cfgStudent" value="學員 A"></label>
+        <label class="check"><input type="checkbox" id="cfgSound" checked>播放提示音</label>
+        <label class="check"><input type="checkbox" id="cfgRepeat" checked>時間到持續響鈴直到按停</label>
+        <label class="check"><input type="checkbox" id="cfgVoice">語音播報（剩餘時間／時間到）</label>
+        <label class="check"><button id="btnTestSound" type="button">測試提示音</button></label>
+      </div>
+      <h2>站別與任務（模擬資料）</h2>
+      <div class="stlist" id="stList"></div>
+      <div class="chips">
+        <button class="chip" id="btnAddSt" type="button">＋ 新增站別</button>
+        <button class="chip" id="btnDelSt" type="button">－ 移除最後一站</button>
+      </div>
+      <p class="sub">請使用「學員 A」「第 3 站」等虛構資料。設定只存在這支手機的瀏覽器，不會上傳。</p>
+    </div>
+  </details>
+
+  <footer>倒數以系統時鐘校正，切換 App 後回來仍準確。正式導入前請另行驗證計時準確性與斷網應變方式。<br><span class="copy">© 2026 中國醫藥大學附設醫院 教學部 版權所有　｜　OSCE 考站計時器 V02（2026-10-29）</span></footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<!--#BODY-END-->
+<script src="js/app.js"></script>
+</body>
+</html>
